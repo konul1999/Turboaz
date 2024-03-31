@@ -12,67 +12,62 @@ namespace TurboAz
     internal class Program
     {
         static AppDbContext db = new AppDbContext();
+        private static object item;
+
         static void Main(string[] args)
         {
-            int answer;
+            
             do
             {
-                Console.WriteLine("1 - Marka elave ele: ");
-                Console.WriteLine("2 - Marka sil :");
-                Console.WriteLine("3 - Marka hamisin goster: ");
-                Console.WriteLine("4 - Marka Id ile axtar: ");
-                Console.WriteLine("5 - Marka duzelish ele: ");
-
-
-                Console.WriteLine("6 - Model elave ele: ");
-                Console.WriteLine("7 - Model sil: ");
-                Console.WriteLine("8 - Butun modelleri goster: ");
-                Console.WriteLine("9 - Model Id ile axtar: ");
-                Console.WriteLine("10 - Modele duzelish ele: ");
-
-
-                Console.WriteLine("11 - Elan elave ele: ");
-
-                answer = Helper.ReadInt("Siayhidan secim edin", "Sehv daxil etdiniz");
+                Menu answer = Helper.ChooseOption<Menu>("Menu-dan secim edin:");
 
 
                 switch (answer)
                 {
-                    case 1:
-                        AddNewMarka();
-                        break;
-                    case 2:
-                        DeleteMarka();
-                        break;
-                    case 3:
+                    case Menu.GetAllMarka:
                         GetAllMarka();
                         break;
-                    case 4:
+                    case Menu.AddNewMarka:
+                        AddNewMarka();
+                        break;
+                    case Menu.DeleteMarka:
+                        DeleteMarka();
+                        break;
+                    case Menu.GetMarkaByID:
                         GetMarkaById();
                         break;
-                    case 5:
+                    case Menu.EditMarka:
                         EditMarka();
                         break;
-                    case 6:
+                    case Menu.AddNewModel:
                         AddNewModel();
                         break;
-                    case 7:
+                    case Menu.DeleteModel:
                         DeleteModel();
                         break;
-                    case 8:
+                    case Menu.GetAllModels:
                         GetAllModels();
                         break;
-                    case 9:
+                    case Menu.GetModelById:
                         GetModelById();
                         break;
-                    case 10:
+                    case Menu.EditModel:
                         EditModel();
                         break;
-                    case 11:
+                    case Menu.AddAnnouncement:
                         AddAnnouncement();
                         break;
-                    case 12:
+                    case Menu.DeleteAnnouncement:
                         DeleteAnnouncement();
+                        break;
+                    case Menu.EditAnnouncement:
+                        EditAnnouncement();
+                        break;
+                        case Menu.GetAnnouncementById:
+                        GetAnnouncementById(); 
+                        break;
+                    case Menu.GetAllAnnouncement:
+                        GetAllAnnouncement();
                         break;
                     default:
                         break;
@@ -201,7 +196,7 @@ namespace TurboAz
             }
 
             int year;
-            l8:
+        l8:
             year = Helper.ReadInt("Ili daxil edin:", "Il sehvdir!");
             if (year < 1900)
             {
@@ -257,6 +252,86 @@ namespace TurboAz
             Console.WriteLine("Silindi!\n");
 
         }
+
+        private static void EditAnnouncement()
+        {
+
+            List<Model> models = db.Models.ToList();
+            List<Marka> marks = db.Marks.ToList();
+            List<Announcement> announcements = db.Announcements.ToList();
+
+            foreach (var item in announcements)
+            {
+                Console.WriteLine($"Id - {item.Id}  March - {item.March} Price - {item.Price} ModelId - {item.ModelId} Banner - {item.Banner} FuelType - {item.FuelType} GearBox - {item.GearBox} Transmission - {item.Transmission} Year - {item.Year}");
+            }
+        l1:
+            int announcementId = Helper.ReadInt("Duzelish etmek istediyiniz elanın Id-sini daxil edin !", "Sehv daxil etdiniz");
+            Announcement announcement = announcements.FirstOrDefault(m => m.Id == announcementId);
+            if (announcement == null)
+            {
+                Console.WriteLine($"{announcement} - Id li Elan siyahida yoxdur!");
+                goto l1;
+            }
+
+            int newModelId = Helper.ReadInt("Elanın yeni modelini daxil edin!", "Sehv daxil etdiniz");
+
+            foreach (var item in announcements)
+            {
+                Console.WriteLine($"Id - {item.Id}, Model - {item.ModelId}");
+            }
+
+            int markaId;
+
+
+            announcement.ModelId = newModelId;
+
+
+            announcement.LastModifiedAt = DateTime.Now;
+            announcement.LastModifiedBy = 1;
+
+            db.SaveChanges();
+
+            Console.WriteLine("Deyisiklik edildi ! \n");
+        }
+        private static void GetAnnouncementById()
+        {
+            int announcementId;
+            List<Announcement> announcements = db.Announcements.ToList();
+
+        l1:
+            announcementId = Helper.ReadInt("Tapmaq istediyiniz Elanin Id-sini daxil edin", "Sehv daxil etdiniz");
+
+            Announcement announcement = announcements.FirstOrDefault(x => x.Id == announcementId);
+            if (announcement == null)
+            {
+                Console.WriteLine("Bu Id-ile model tapilmadi!");
+                goto l1;
+            }
+
+            Console.WriteLine($"Id - {announcement.Id}  March - {announcement.March} Price - {announcement.Price} ModelId - {announcement.ModelId} Banner - {announcement.Banner} FuelType - {announcement.FuelType} GearBox - {announcement.GearBox} Transmission - {announcement.Transmission} Year - {announcement.Year}");
+        
+            Console.WriteLine("\n");
+
+        }
+
+        private static void GetAllAnnouncement()
+        {
+            List<Announcement> announcements = db.Announcements.ToList();
+            if (announcements.Count > 0)
+            {
+                foreach (var item in announcements)
+                {
+                    Console.WriteLine($"Id - {item.Id},  - ModelId {item.ModelId}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Elan siyahisi boshdu ! \n");
+            }
+
+
+        }
+
 
         private static void EditModel()
         {
@@ -429,7 +504,7 @@ namespace TurboAz
 
             string newMarkaName = Helper.ReadString("Markanin yeni adini daxil edin:", "Sehv daxil etdiniz");
             marka.Name = newMarkaName;
-            marka.CreatedAt = DateTime.Now;
+            marka.LastModifiedAt = DateTime.Now;
             db.SaveChanges();
 
             Console.WriteLine("Deyisiklik edildi! \n");
